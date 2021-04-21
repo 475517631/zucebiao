@@ -172,6 +172,13 @@ void logpath(string apppath,string mupath)//第一个参数是表示读取log位
 {
 	wstring mcpath = GetLocalAppdataPath();
 	string minclaspath = wstring2string(mcpath);
+	//cout << "minclaspath" << endl;
+	//cout << minclaspath << endl;
+	if (minclaspath.size()==0)
+	{
+		cout << "收集不到日志地址请确认是否安装此软件并打开运行" << endl;
+		return;
+	}
 	apppath.c_str();
 	minclaspath.append(apppath);
 	zip_un smzip;
@@ -241,6 +248,10 @@ void test2()//三分屏处理
 		strValueName = _T("InstallLocation");
 	}
 	status = QueryRegKey(strSubKey, strValueName, strValue1, length);
+	if (status != 1)
+	{
+		cout << "收集不到该软件的日志地址请确认是否安装了此app并成功打开并运行" << endl;
+	}
 	//cout << status << endl;
 	int _len = strlen(strValue1);
 	string ss = "";
