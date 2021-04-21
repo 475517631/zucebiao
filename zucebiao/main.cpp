@@ -24,6 +24,7 @@ using namespace std;
 int mark;//区分三分屏or小班课
 int _mark;//区分系统32位还是64位  
 int length=256; 
+int Case;//输如控制命令
 bool status;	
 HKEY  hKey = NULL;
 LPCWSTR strSubKey; LPCWSTR strValueName;	
@@ -346,12 +347,12 @@ void test6()//学生端
 
 void test7()
 {
+	if(Case!=8)
 	cout << "请输入正确的日志收集命令" << endl;
 }
 int main()
 {
 	GetSystemDirectory(path,MAX_PATH);
-	int Case;//输如控制命令
 	if (IsWow64())
 	{
 		_mark = 64;
