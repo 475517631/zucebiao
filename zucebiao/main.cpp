@@ -21,16 +21,16 @@
 #include<fstream>
 #include<winbase.h>
 using namespace std;
-int mark;//Çø·ÖÈı·ÖÆÁorĞ¡°à¿Î
-int _mark;//Çø·ÖÏµÍ³32Î»»¹ÊÇ64Î»  
+int mark;//åŒºåˆ†ä¸‰åˆ†å±orå°ç­è¯¾
+int _mark;//åŒºåˆ†ç³»ç»Ÿ32ä½è¿˜æ˜¯64ä½  
 int length=256; 
 bool status;	
 HKEY  hKey = NULL;
 LPCWSTR strSubKey; LPCWSTR strValueName;	
-ifstream ifs;//Á÷ÎÄ¼ş
-char strValue1[256];//ÊÕ¼¯Èı·ÖÆÁµÄ°²×°µØÖ·
-char strValue[256];//ÊÕÈ¡Ğ¡°à¿ÎµÄ°²×°µØÖ·
-TCHAR  path[MAX_PATH];//´æÏµÍ³ÅÌµØÖ·
+ifstream ifs;//æµæ–‡ä»¶
+char strValue1[256];//æ”¶é›†ä¸‰åˆ†å±çš„å®‰è£…åœ°å€
+char strValue[256];//æ”¶å–å°ç­è¯¾çš„å®‰è£…åœ°å€
+TCHAR  path[MAX_PATH];//å­˜ç³»ç»Ÿç›˜åœ°å€
 void wcharTochar(const wchar_t *wchar, char *chr, int length)
 {
 	WideCharToMultiByte(CP_ACP, 0, wchar, -1,
@@ -39,7 +39,7 @@ void wcharTochar(const wchar_t *wchar, char *chr, int length)
 
 typedef BOOL(WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
 LPFN_ISWOW64PROCESS fnIsWow64Process;
-BOOL IsWow64()//ÅĞ¶ÏÏµÍ³Î»Êı Ö±½Óµ÷ÓÃ¼´¿É
+BOOL IsWow64()//åˆ¤æ–­ç³»ç»Ÿä½æ•° ç›´æ¥è°ƒç”¨å³å¯
 {
 	BOOL bIsWow64 = FALSE;
 	//IsWow64Process is not available on all supported versions of Windows.
@@ -76,13 +76,13 @@ wstring GetLocalAppdataPath()
 string wstring2string(wstring wstr)
 {
 	string result;
-	//»ñÈ¡»º³åÇø´óĞ¡£¬²¢ÉêÇë¿Õ¼ä£¬»º³åÇø´óĞ¡ÊÂ°´×Ö½Ú¼ÆËãµÄ  
+	//è·å–ç¼“å†²åŒºå¤§å°ï¼Œå¹¶ç”³è¯·ç©ºé—´ï¼Œç¼“å†²åŒºå¤§å°äº‹æŒ‰å­—èŠ‚è®¡ç®—çš„  
 	int len = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), wstr.size(), NULL, 0, NULL, NULL);
 	char* buffer = new char[len + 1];
-	//¿í×Ö½Ú±àÂë×ª»»³É¶à×Ö½Ú±àÂë  
+	//å®½å­—èŠ‚ç¼–ç è½¬æ¢æˆå¤šå­—èŠ‚ç¼–ç   
 	WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), wstr.size(), buffer, len, NULL, NULL);
 	buffer[len] = '\0';
-	//É¾³ı»º³åÇø²¢·µ»ØÖµ  
+	//åˆ é™¤ç¼“å†²åŒºå¹¶è¿”å›å€¼  
 	result.append(buffer);
 	delete[] buffer;
 	return result;
@@ -116,20 +116,20 @@ bool OpenRegKey(HKEY& hRetKey)
 	{
 		if (_mark == 64)
 		{
-			sw = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0D9BCA0A-76FF-4FAC-A9ED-CA05B66C27B7}_is1");//Ğ¡°à¿Î×¢²á±íµØÖ·64Î»
+			sw = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0D9BCA0A-76FF-4FAC-A9ED-CA05B66C27B7}_is1");//å°ç­è¯¾æ³¨å†Œè¡¨åœ°å€64ä½
 		}else if (_mark==32)
 		{
-			sw = _T("SOFTWARE\\WOW3232Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0D9BCA0A-76FF-4FAC-A9ED-CA05B66C27B7}_is1");//Ğ¡°à¿Î×¢²á±íµØÖ·32Î»
+			sw = _T("SOFTWARE\\WOW3232Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0D9BCA0A-76FF-4FAC-A9ED-CA05B66C27B7}_is1");//å°ç­è¯¾æ³¨å†Œè¡¨åœ°å€32ä½
 		}
 	}*/
 	 if (mark == 2)
 	{
 		if (_mark == 64)
 		{
-			sw = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2F0F058C-D340-4520-948E-7639602467EF}_is1");//Èı·ÖÆÁ×¢²á±íµØÖ·64Î»
+			sw = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2F0F058C-D340-4520-948E-7639602467EF}_is1");//ä¸‰åˆ†å±æ³¨å†Œè¡¨åœ°å€64ä½
 		}else if (_mark == 32)
 		{
-			sw = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2F0F058C-D340-4520-948E-7639602467EF}_is1");//Èı·ÖÆÁ×¢²á±íµØÖ·32Î»
+			sw = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2F0F058C-D340-4520-948E-7639602467EF}_is1");//ä¸‰åˆ†å±æ³¨å†Œè¡¨åœ°å€32ä½
 		}
 	}
 	//wprintf(L"SW is %s\n", sw);
@@ -141,9 +141,9 @@ bool OpenRegKey(HKEY& hRetKey)
 	return false;
 }
 
-bool QueryRegKey(LPCWSTR strSubKey, LPCWSTR strValueName, char *strValue, int length)//´«3¸ö²ÎÊı
+bool QueryRegKey(LPCWSTR strSubKey, LPCWSTR strValueName, char *strValue, int length)//ä¼ 3ä¸ªå‚æ•°
 {
-	DWORD dwType = REG_SZ;//¶¨ÒåÊı¾İÀàĞÍ
+	DWORD dwType = REG_SZ;//å®šä¹‰æ•°æ®ç±»å‹
 	DWORD dwLen = MAX_PATH;
 	wchar_t data[MAX_PATH];
 	HKEY hKey;
@@ -158,17 +158,17 @@ bool QueryRegKey(LPCWSTR strSubKey, LPCWSTR strValueName, char *strValue, int le
 			{
 				wcharTochar(data, strValue, length);
 				//wprintf(L"data = %s,len= %d\n", data, strlen((const char *)data));
-				RegCloseKey(hKey); //¹Ø±Õ×¢²á±í
+				RegCloseKey(hKey); //å…³é—­æ³¨å†Œè¡¨
 				return true;
 			}
 		}
-		RegCloseKey(hKey); //¹Ø±Õ×¢²á±í
+		RegCloseKey(hKey); //å…³é—­æ³¨å†Œè¡¨
 	}
 
 	return false;
 }
 
-void logpath(string apppath,string mupath)//µÚÒ»¸ö²ÎÊıÊÇ±íÊ¾¶ÁÈ¡logÎ»ÖÃ µÚ¶ş¸ö²ÎÊıÊÇÎÄ¼şÉú³ÉÎÄ¼şÃû
+void logpath(string apppath,string mupath)//ç¬¬ä¸€ä¸ªå‚æ•°æ˜¯è¡¨ç¤ºè¯»å–logä½ç½® ç¬¬äºŒä¸ªå‚æ•°æ˜¯æ–‡ä»¶ç”Ÿæˆæ–‡ä»¶å
 {
 	wstring mcpath = GetLocalAppdataPath();
 	string minclaspath = wstring2string(mcpath);
@@ -191,13 +191,13 @@ void logpath(string apppath,string mupath)//µÚÒ»¸ö²ÎÊıÊÇ±íÊ¾¶ÁÈ¡logÎ»ÖÃ µÚ¶ş¸ö²Î
 	}
 	CString str1 = strZipPath_un.c_str();
 	fname.append(mupath);
-	cout << fname << endl;
+	//cout << fname << endl;
 	CString str2 = fname.c_str();
 	CopyFile(str1, str2, FALSE);
      
 	return;
 }
-void test1()//Ğ¡°à¿Î
+void test1()//å°ç­è¯¾
 {
 	/*wstring mcpath = GetLocalAppdataPath();
 	string minclaspath = wstring2string(mcpath);
@@ -226,18 +226,18 @@ void test1()//Ğ¡°à¿Î
 	return;
 }
 
-void test2()//Èı·ÖÆÁ´¦Àí
+void test2()//ä¸‰åˆ†å±å¤„ç†
 {
 	mark = 2;
 	hKey = NULL;
 	if (_mark == 64)
 	{
-		strSubKey = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2F0F058C-D340-4520-948E-7639602467EF}_is1");//¶ÁÈ¡Èı·ÖÆÁ64Î»
+		strSubKey = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2F0F058C-D340-4520-948E-7639602467EF}_is1");//è¯»å–ä¸‰åˆ†å±64ä½
 		strValueName = _T("InstallLocation");
 	}
 	else if (_mark == 32)
 	{
-		strSubKey = _T("SOFTWARE\\WOW3232Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2F0F058C-D340-4520-948E-7639602467EF}_is1");//¶ÁÈ¡Èı·ÖÆÁ32Î»
+		strSubKey = _T("SOFTWARE\\WOW3232Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2F0F058C-D340-4520-948E-7639602467EF}_is1");//è¯»å–ä¸‰åˆ†å±32ä½
 		strValueName = _T("InstallLocation");
 	}
 	status = QueryRegKey(strSubKey, strValueName, strValue1, length);
@@ -301,7 +301,7 @@ void test2()//Èı·ÖÆÁ´¦Àí
 	CopyFile(str1, str2, FALSE);
 	return;
 }
-void test3()//Ğ¡Ôî¿Î
+void test3()//å°ç¶è¯¾
 {
 	string s1 = "\\zystove\\log";
 	string s2 = "\\ztstovelog.zip";
@@ -309,7 +309,7 @@ void test3()//Ğ¡Ôî¿Î
 	return;
 }
 
-void test4()//¹«Á¢Ğ£
+void test4()//å…¬ç«‹æ ¡
 {    
 	string s1 = "\\zyschool\\log";
 	string s2 = "\\zyschoollog.zip";
@@ -317,7 +317,7 @@ void test4()//¹«Á¢Ğ£
 	return;
 }
 
-void test5()//¸¨µ¼¶Ë
+void test5()//è¾…å¯¼ç«¯
 {
 	string s1 = "\\zycounsellor\\logs";
 	string s2 = "\\zycounsellorlog.zip";
@@ -325,7 +325,7 @@ void test5()//¸¨µ¼¶Ë
 	return;
 }
 
-void test6()//Ñ§Éú¶Ë
+void test6()//å­¦ç”Ÿç«¯
 {
 	string s1 = "\\ZYStudent\\ZYLauncherLog";
 	string s2 = "\\zyStudentlog.zip";
@@ -335,12 +335,12 @@ void test6()//Ñ§Éú¶Ë
 
 void test7()
 {
-	cout << "ÇëÊäÈëÕıÈ·µÄÈÕÖ¾ÊÕ¼¯ÃüÁî" << endl;
+	cout << "è¯·è¾“å…¥æ­£ç¡®çš„æ—¥å¿—æ”¶é›†å‘½ä»¤" << endl;
 }
 int main()
 {
 	GetSystemDirectory(path,MAX_PATH);
-	int Case;//ÊäÈç¿ØÖÆÃüÁî
+	int Case;//è¾“å¦‚æ§åˆ¶å‘½ä»¤
 	if (IsWow64())
 	{
 		_mark = 64;
@@ -350,25 +350,25 @@ int main()
 		_mark = 32;
 	}
 	//string result;
-	cout << "ÊäÈë1ÊÕ¼¯Ğ¡°à¿ÎÈÕÖ¾£¬ÊäÈë2ÊÕ¼¯Èı·ÖÆÁÈÕÖ¾£¬ÊäÈë8ÍË³ö," << '\n';
-	cout << "ÊäÈë3ÊÕ¼¯Ğ¡Ôî¿ÎÈÕÖ¾£¬ÊäÈë4ÊÕ¼¯¹«Á¢Ğ£ÈÕÖ¾" << endl;
-	cout << "ÊäÈë5ÊÕ¼¯¸¨µ¼¶ËÈÕÖ¾£¬ÊäÈë6ÊÕ¼¯Ñ§Éú¶ËÈÕÖ¾" << endl;
-	cout << "Éú³ÉÈÕÖ¾´æ·ÅÔÚ"; printf("%s",path); cout << "ÅÌjournalFolderÏÂ " << endl;
-	cout << "Ğ¡°à¿ÎÈÕÖ¾Îªsmallclasslog.zip Èı·ÖÆÁÈÕÖ¾Îªlog.zip" << endl;
-	cout << "Ğ¡Ôî¿ÎÈÕÖ¾Îªztstovelog.zip ¹«Á¢Ğ£ÈÕÖ¾Îªzyschoollog.zip"<< endl;
-	cout << "¸¨µ¼¶ËµÄÈÕÖ¾Îªzycounsellorlog.zip Ñ§Éú¶ËµÄÈÕÖ¾Îªzystudentlog.zip" << endl;
-	cout << "ÇëÓÃ¹ÜÀíÔ±È¨ÏŞÔËĞĞ´Ë³ÌĞò" << endl;
+	cout << "è¾“å…¥1æ”¶é›†å°ç­è¯¾æ—¥å¿—ï¼Œè¾“å…¥2æ”¶é›†ä¸‰åˆ†å±æ—¥å¿—ï¼Œè¾“å…¥8é€€å‡º," << '\n';
+	cout << "è¾“å…¥3æ”¶é›†å°ç¶è¯¾æ—¥å¿—ï¼Œè¾“å…¥4æ”¶é›†å…¬ç«‹æ ¡æ—¥å¿—" << endl;
+	cout << "è¾“å…¥5æ”¶é›†è¾…å¯¼ç«¯æ—¥å¿—ï¼Œè¾“å…¥6æ”¶é›†å­¦ç”Ÿç«¯æ—¥å¿—" << endl;
+	cout << "ç”Ÿæˆæ—¥å¿—å­˜æ”¾åœ¨"; printf("%s",path); cout << "ç›˜journalFolderä¸‹ " << endl;
+	cout << "å°ç­è¯¾æ—¥å¿—ä¸ºsmallclasslog.zip ä¸‰åˆ†å±æ—¥å¿—ä¸ºlog.zip" << endl;
+	cout << "å°ç¶è¯¾æ—¥å¿—ä¸ºztstovelog.zip å…¬ç«‹æ ¡æ—¥å¿—ä¸ºzyschoollog.zip"<< endl;
+	cout << "è¾…å¯¼ç«¯çš„æ—¥å¿—ä¸ºzycounsellorlog.zip å­¦ç”Ÿç«¯çš„æ—¥å¿—ä¸ºzystudentlog.zip" << endl;
+	cout << "è¯·ç”¨ç®¡ç†å‘˜æƒé™è¿è¡Œæ­¤ç¨‹åº" << endl;
 	while (true)
 	{
 		cin >> Case;
 		switch (Case)
 		{
-			case 1: test1(); break;//Ğ¡°à¿Î
-			case 2: test2(); break;//Èı·ÖÆÁ
-			case 3: test3(); break;//Ğ¡Ôî¿Î
-			case 4: test4(); break;//¹«Á¢Ğ£
-			case 5: test5(); break;//¸¨µ¼¶Ë
-			case 6: test6(); break;//Ñ§Éú¶Ë
+			case 1: test1(); break;//å°ç­è¯¾
+			case 2: test2(); break;//ä¸‰åˆ†å±
+			case 3: test3(); break;//å°ç¶è¯¾
+			case 4: test4(); break;//å…¬ç«‹æ ¡
+			case 5: test5(); break;//è¾…å¯¼ç«¯
+			case 6: test6(); break;//å­¦ç”Ÿç«¯
 			default: test7(); break;
 		}
 		if (Case == 8)break;
