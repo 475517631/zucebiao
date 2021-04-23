@@ -308,7 +308,7 @@ void test2()//三分屏处理
 	}
 	
 	CString str1 = strZipPath_un.c_str();
-	fname.append("\\log.zip");
+	fname.append("\\zyLecturelog.zip");
 	CString str2 = fname.c_str();
 	CopyFile(str1, str2, FALSE);
 	return;
@@ -366,7 +366,7 @@ int main()
 	cout << "输入3收集小灶课日志，输入4收集公立校日志" << endl;
 	cout << "输入5收集辅导端日志，输入6收集学生端日志" << endl;
 	cout << "生成日志存放在"; printf("%s",path); cout << "盘journalFolder下 " << endl;
-	cout << "小班课日志为smallclasslog.zip 三分屏日志为log.zip" << endl;
+	cout << "小班课日志为smallclasslog.zip 三分屏日志为zyLecturelog.zip" << endl;
 	cout << "小灶课日志为ztstovelog.zip 公立校日志为zyschoollog.zip"<< endl;
 	cout << "辅导端的日志为zycounsellorlog.zip 学生端的日志为zystudentlog.zip" << endl;
 	cout << "请用管理员权限运行此程序" << endl;
@@ -385,6 +385,6 @@ int main()
 		}
 		if (Case == 8)break;
 	}
-	system("pause");
+	//system("pause");
 	return 0;
 }
