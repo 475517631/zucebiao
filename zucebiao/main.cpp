@@ -369,7 +369,8 @@ int main()
 	cout << "小班课日志为smallclasslog.zip 三分屏日志为zyLecturelog.zip" << endl;
 	cout << "小灶课日志为ztstovelog.zip 公立校日志为zyschoollog.zip"<< endl;
 	cout << "辅导端的日志为zycounsellorlog.zip 学生端的日志为zystudentlog.zip" << endl;
-	cout << "请用管理员权限运行此程序" << endl;
+	cout << "请用管理员权限运行此程序,如若发生闪退现象请确认是否安装并运行了该app" << endl;
+	cout << "请勿重复输入一个命令避免闪退现象" << endl;
 	while (true)
 	{
 		cin >> Case;
