@@ -26,6 +26,7 @@ int _mark;//区分系统32位还是64位
 int length=256; 
 int Case;
 bool status;	
+string desktop;
 HKEY  hKey = NULL;
 LPCWSTR strSubKey; LPCWSTR strValueName;	
 ifstream ifs;//流文件
@@ -106,10 +107,32 @@ std::string TCHAR2STRING(TCHAR* str)
 	catch (std::exception e)
 	{
 	}
+	//cout << "one" << endl;
+//	cout << strstr << endl;
 	strstr = strstr[0];
 	return strstr;
 }
 
+std::string TCHARSTRING(TCHAR* str)
+{
+	std::string strstr;
+	try
+	{
+		int iLen = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
+
+		char* chRtn = new char[iLen * sizeof(char)];
+
+		WideCharToMultiByte(CP_ACP, 0, str, -1, chRtn, iLen, NULL, NULL);
+
+		strstr = chRtn;
+	}
+	catch (std::exception e)
+	{
+	}
+	//cout << "one" << endl;
+	//cout << strstr << endl;
+	return strstr;
+}
 bool OpenRegKey(HKEY& hRetKey)
 {
 	LPCWSTR sw;
@@ -187,25 +210,17 @@ void logpath(string apppath,string mupath)//第一个参数是表示读取log位
 {
 	wstring mcpath = GetLocalAppdataPath();
 	string minclaspath = wstring2string(mcpath);
-	//cout << mcpath << endl;
-	//cout << minclaspath << endl;
-	//cout << "minclaspath" << endl;
-	//cout << minclaspath << endl;
-	if (minclaspath.size()==0)
-	{
-		cout << "收集不到日志地址请确认是否安装此软件并打开运行" << endl;
-		return;
-	}
 	apppath.c_str();
 	minclaspath.append(apppath);
 	zip_un smzip;
 	string strZipPath_un, strZipPath = minclaspath;
-	//cout << strZipPath << endl;
-	strZipPath_un = strZipPath + ".zip";	
-	//smzip.Zip_PackFiles(strZipPath);
+
+	strZipPath_un = strZipPath + ".zip";
+	name();
+	smzip.Zip_PackFiles(strZipPath);
 	//name();
 	//cout << minclaspath << endl;
-	smzip.Zip_UnPackFiles(strZipPath);
+	//smzip.Zip_UnPackFiles(strZipPath);
 	
 	/*	name();
 		cout << "没有找到该app日志数据请确认是否安装并运行" << endl;
@@ -213,9 +228,12 @@ void logpath(string apppath,string mupath)//第一个参数是表示读取log位
 	//else cout << "no" << endl;
 	string zu=TCHAR2STRING(path);
 	string fname = "";
-	fname.append(zu);
+	//cout << "desktop" << endl;
+	//cout << desktop << endl;
+
+	fname.append(desktop);
 	//cout << zu << endl;
-	fname = fname+":\\journalFolder";
+	fname = fname+"\\journalFolder";
 	//cout << fname << endl;
 	if (0 != access(fname.c_str(), 0))
 	{
@@ -274,7 +292,7 @@ void test2()//三分屏处理
 	}
 	status = QueryRegKey(strSubKey, strValueName, strValue1, length);
 	//cout << "status数值";
-	cout << status << endl;
+	//cout << status << endl;
 	if (status != 1)
 	{
 		cout << "收集不到该软件的日志地址请确认是否安装了此app并成功打开并运行" << endl;
@@ -316,6 +334,7 @@ void test2()//三分屏处理
 	zip_un z;
 	string strZipPath_un, strZipPath = ss;
 	strZipPath_un = strZipPath + ".zip";
+	name();
 	z.Zip_PackFiles(strZipPath);
 	for (int i = 0; i < strZipPath_un.size(); i++)
 	{
@@ -325,9 +344,9 @@ void test2()//三分屏处理
 	//cout << strZipPath_un << endl;
 	string zu = TCHAR2STRING(path);
 	string fname = "";
-	fname.append(zu);
+	fname.append(desktop);
 	//cout << zu << endl;
-	fname = fname + ":\\journalFolder";
+	fname = fname + "\\journalFolder";
 	if (0 != access(fname.c_str(), 0))
 	{
 		mkdir(fname.c_str());
@@ -374,6 +393,9 @@ void test6()//学生端
 int main()
 {
 	GetSystemDirectory(path,MAX_PATH);
+	TCHAR path[255];
+	SHGetSpecialFolderPath(0, path, CSIDL_DESKTOPDIRECTORY, 0);
+	desktop= TCHARSTRING(path);
 	if (IsWow64())
 	{
 		_mark = 64;
@@ -383,8 +405,7 @@ int main()
 		_mark = 32;
 	}
 	//string result;
-	
-	cout << "生成日志存放在"; printf("%s",path); cout << "盘journalFolder下 " << endl;
+	cout << "生成日志存放在桌面journalFolder文件夹下 " << endl;
 	cout << "小班课日志为smallclasslog.zip 三分屏日志为zyLecturelog.zip" << endl;
 	cout << "小灶课日志为ztstovelog.zip 公立校日志为zyschoollog.zip"<< endl;
 	cout << "辅导端的日志为zycounsellorlog.zip 学生端的日志为zystudentlog.zip" << endl;
@@ -402,6 +423,7 @@ int main()
 			default:  break;
 			}
 		}
+	//system("pause");
 	system("pause");
 	return 0;
 }
