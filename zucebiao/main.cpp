@@ -24,7 +24,7 @@ using namespace std;
 int mark;//区分三分屏or小班课
 int _mark;//区分系统32位还是64位  
 int length=256; 
-int Case;//输如控制命令
+int Case;
 bool status;	
 HKEY  hKey = NULL;
 LPCWSTR strSubKey; LPCWSTR strValueName;	
@@ -168,11 +168,27 @@ bool QueryRegKey(LPCWSTR strSubKey, LPCWSTR strValueName, char *strValue, int le
 
 	return false;
 }
-
+void name()
+{
+	switch (Case)
+	{
+	case 1:cout << "小班课" << endl; break;//小班课
+	case 2:cout << "三分屏" << endl; break;//三分屏
+	case 3:cout << "小灶课" << endl; break;//小灶课
+	case 4:cout << "公立校" << endl; break;//公立校
+	case 5:cout << "辅导端" << endl; break;//辅导端
+	case 6:cout << "学生端" << endl; break;//学生端
+	default:
+		break;
+	}
+	return;
+}
 void logpath(string apppath,string mupath)//第一个参数是表示读取log位置 第二个参数是文件生成文件名
 {
 	wstring mcpath = GetLocalAppdataPath();
 	string minclaspath = wstring2string(mcpath);
+	//cout << mcpath << endl;
+	//cout << minclaspath << endl;
 	//cout << "minclaspath" << endl;
 	//cout << minclaspath << endl;
 	if (minclaspath.size()==0)
@@ -186,7 +202,15 @@ void logpath(string apppath,string mupath)//第一个参数是表示读取log位
 	string strZipPath_un, strZipPath = minclaspath;
 	//cout << strZipPath << endl;
 	strZipPath_un = strZipPath + ".zip";	
-	smzip.Zip_PackFiles(strZipPath);
+	//smzip.Zip_PackFiles(strZipPath);
+	//name();
+	//cout << minclaspath << endl;
+	smzip.Zip_UnPackFiles(strZipPath);
+	
+	/*	name();
+		cout << "没有找到该app日志数据请确认是否安装并运行" << endl;
+	*/
+	//else cout << "no" << endl;
 	string zu=TCHAR2STRING(path);
 	string fname = "";
 	fname.append(zu);
@@ -249,6 +273,8 @@ void test2()//三分屏处理
 		strValueName = _T("InstallLocation");
 	}
 	status = QueryRegKey(strSubKey, strValueName, strValue1, length);
+	//cout << "status数值";
+	cout << status << endl;
 	if (status != 1)
 	{
 		cout << "收集不到该软件的日志地址请确认是否安装了此app并成功打开并运行" << endl;
@@ -345,11 +371,6 @@ void test6()//学生端
 	return;
 }
 
-void test7()
-{
-	if(Case!=8)
-	cout << "请输入正确的日志收集命令" << endl;
-}
 int main()
 {
 	GetSystemDirectory(path,MAX_PATH);
@@ -362,30 +383,25 @@ int main()
 		_mark = 32;
 	}
 	//string result;
-	cout << "输入1收集小班课日志，输入2收集三分屏日志，输入8退出," << '\n';
-	cout << "输入3收集小灶课日志，输入4收集公立校日志" << endl;
-	cout << "输入5收集辅导端日志，输入6收集学生端日志" << endl;
+	
 	cout << "生成日志存放在"; printf("%s",path); cout << "盘journalFolder下 " << endl;
 	cout << "小班课日志为smallclasslog.zip 三分屏日志为zyLecturelog.zip" << endl;
 	cout << "小灶课日志为ztstovelog.zip 公立校日志为zyschoollog.zip"<< endl;
 	cout << "辅导端的日志为zycounsellorlog.zip 学生端的日志为zystudentlog.zip" << endl;
-	cout << "请用管理员权限运行此程序,如若发生闪退现象请确认是否安装并运行了该app" << endl;
-	cout << "请勿重复输入一个命令避免闪退现象" << endl;
-	while (true)
-	{
-		cin >> Case;
-		switch (Case)
+		for (Case = 1; Case <= 7; Case++)
 		{
+			if (Case == 7)break;
+			switch (Case)
+			{
 			case 1: test1(); break;//小班课
 			case 2: test2(); break;//三分屏
 			case 3: test3(); break;//小灶课
 			case 4: test4(); break;//公立校
 			case 5: test5(); break;//辅导端
 			case 6: test6(); break;//学生端
-			default: test7(); break;
+			default:  break;
+			}
 		}
-		if (Case == 8)break;
-	}
-	//system("pause");
+	system("pause");
 	return 0;
 }
