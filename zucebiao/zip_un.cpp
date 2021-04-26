@@ -33,22 +33,22 @@ int zip_un::Zip_UnPackFiles(string strZipPath) {
 	vector<string> mUn = split(strZipPath);
 	const WCHAR* pwUnicode = toWchar(strZipPath_un);
 	string a = "mkdir -p " + connectStr(mUn);
-	system(a.c_str());  //´´½¨ÎÄ¼ş
-						//½âÑ¹ÎÄ¼ş
-						//SetCurrentDirectory(_T("D:\\c++_project"));//½«½ø³ÌµÄ¹¤×÷Ä¿Â¼ÒÆ¶¯µ½¸Ã²ÎÊıËùÖ¸µÄÄ¿Â¼ÏÂ,¸ÃÄ¿Â¼Îªwinrar.exeµÄÄ¬ÈÏÎÄ¼şÂ·¾¶
+	system(a.c_str());  //åˆ›å»ºæ–‡ä»¶
+						//è§£å‹æ–‡ä»¶
+						//SetCurrentDirectory(_T("D:\\c++_project"));//å°†è¿›ç¨‹çš„å·¥ä½œç›®å½•ç§»åŠ¨åˆ°è¯¥å‚æ•°æ‰€æŒ‡çš„ç›®å½•ä¸‹,è¯¥ç›®å½•ä¸ºwinrar.exeçš„é»˜è®¤æ–‡ä»¶è·¯å¾„
 	SetCurrentDirectoryA(connectStr(mUn).c_str());
-	//½âÑ¹ÎÄ¼ş»áÖ±½ÓÔÚÏîÄ¿µÄ.vcprojÄ¿Â¼ÏÂ½øĞĞ
+	//è§£å‹æ–‡ä»¶ä¼šç›´æ¥åœ¨é¡¹ç›®çš„.vcprojç›®å½•ä¸‹è¿›è¡Œ
 	HZIP hz = OpenZip(pwUnicode, NULL);
 
 	ZIPENTRY ze;
-	GetZipItem(hz, -1, &ze);  // -1¸ø³ö¹ØÓÚzipÎÄ¼şÕûÌåĞÅÏ¢
+	GetZipItem(hz, -1, &ze);  // -1ç»™å‡ºå…³äºzipæ–‡ä»¶æ•´ä½“ä¿¡æ¯
 	int numitems = ze.index;
 	for (int zi = 0; zi < numitems; zi++)
 	{
 		ZIPENTRY ze;
 		GetZipItem(hz, zi, &ze);
 		UnzipItem(hz, zi, ze.name);
-		cout << "½âÑ¹³É¹¦" << endl;
+		cout << "è§£å‹æˆåŠŸ" << endl;
 	}
 	CloseZip(hz);
 	return 0;
@@ -56,7 +56,7 @@ int zip_un::Zip_UnPackFiles(string strZipPath) {
 
 WCHAR* zip_un::toWchar(string strZipPath) {
 	string strZipPath_un = strZipPath;
-	//½«Â·¾¶×ªÎªTCHARÀàĞÍ
+	//å°†è·¯å¾„è½¬ä¸ºTCHARç±»å‹
 	int iUnicode = MultiByteToWideChar(CP_ACP, 0, strZipPath_un.c_str(), strZipPath_un.length(), NULL, 0);
 	WCHAR* pwUnicode = new WCHAR[iUnicode + 2];
 	if (pwUnicode)
@@ -73,10 +73,16 @@ void zip_un::browseFile(string inPath) {
 	string path = inPath + "\\*.*", filePath;
 	struct _finddata_t fileinfo;
 	long handle = _findfirst(path.c_str(), &fileinfo);
+	//cout << "handle" << endl;
+	//cout << handle << endl;
 	if (handle == -1)
-		exit(0);
+	{
+		cout << "æœªæ‰¾åˆ°è¯¥ç›¸å…³æ•°æ®" << endl;
+		return;
+	//	exit(0);
+	}//cout << "æ‰¾åˆ°è¯¥ç›¸å…³æ•°æ®" << endl;
 	do {
-		if (fileinfo.attrib & _A_SUBDIR) {  //ÎªÄ¿Â¼
+		if (fileinfo.attrib & _A_SUBDIR) {  //ä¸ºç›®å½•
 											//ZipAddFolder(hz, toWchar(fileinfo.name));		
 			if (strcmp(fileinfo.name, ".") == 0 || strcmp(fileinfo.name, "..") == 0) continue;
 			index++;
