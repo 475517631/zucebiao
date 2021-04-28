@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include<Windows.h>
 #include<io.h>
+#include<direct.h>
 #include<atlstr.h>
 #include<direct.h>
 #include"zip_un.h"
@@ -23,13 +24,12 @@
 using namespace std;
 int mark;//区分三分屏or小班课
 int _mark;//区分系统32位还是64位  
-int length=256; 
+int length = 256;
 int Case;
-bool status;	
+bool status;
 string desktop;
 HKEY  hKey = NULL;
-LPCWSTR strSubKey; LPCWSTR strValueName;	
-ifstream ifs;//流文件
+LPCWSTR strSubKey; LPCWSTR strValueName;
 char strValue1[256];//收集三分屏的安装地址
 char strValue[256];//收取小班课的安装地址
 TCHAR  path[MAX_PATH];//存系统盘地址
@@ -58,7 +58,6 @@ BOOL IsWow64()//判断系统位数 直接调用即可
 	}
 	return bIsWow64;
 }
-
 
 wstring GetLocalAppdataPath()
 {
@@ -91,7 +90,22 @@ string wstring2string(wstring wstr)
 }
 
 
-std::string TCHAR2STRING(TCHAR* str)
+wstring string2wstring(string str)
+{
+	wstring result;
+	//获取缓冲区大小，并申请空间，缓冲区大小按字符计算  
+	int len = MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), NULL, 0);
+	TCHAR* buffer = new TCHAR[len + 1];
+	//多字节编码转换成宽字节编码  
+	MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), buffer, len);
+	buffer[len] = '\0';             //添加字符串结尾  
+									//删除缓冲区并返回值  
+	result.append(buffer);
+	delete[] buffer;
+	return result;
+}
+
+std::string TCHAR2STRING(TCHAR* str)//tchar转string 返回第一个字符
 {
 	std::string strstr;
 	try
@@ -107,10 +121,30 @@ std::string TCHAR2STRING(TCHAR* str)
 	catch (std::exception e)
 	{
 	}
-	//cout << "one" << endl;
-//	cout << strstr << endl;
 	strstr = strstr[0];
 	return strstr;
+}
+
+
+int  dir(string path)
+{
+	long hFile = 0;  int nu = 0;
+	struct _finddata_t fileInfo;
+	string pathName, excName;
+	// \\*代表要遍历所有的类型
+	if ((hFile = _findfirst(pathName.assign(path).append("\\*").c_str(), &fileInfo)) == -1)
+	{
+		return 0;
+	}
+	do
+	{
+		nu++;
+		//判断文件的属性是文件夹还是文件
+		//cout << fileInfo.name << (fileInfo.attrib&_A_SUBDIR ? "[folder]" : "[file]") << endl;
+	} while (_findnext(hFile, &fileInfo) == 0);
+	_findclose(hFile);
+	return nu;
+
 }
 
 std::string TCHARSTRING(TCHAR* str)
@@ -129,34 +163,76 @@ std::string TCHARSTRING(TCHAR* str)
 	catch (std::exception e)
 	{
 	}
-	//cout << "one" << endl;
-	//cout << strstr << endl;
 	return strstr;
 }
 bool OpenRegKey(HKEY& hRetKey)
 {
 	LPCWSTR sw;
-	/*if (mark == 1)
+	if (mark == 1)
 	{
-		if (_mark == 64)
-		{
-			sw = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0D9BCA0A-76FF-4FAC-A9ED-CA05B66C27B7}_is1");//小班课注册表地址64位
-		}else if (_mark==32)
-		{
-			sw = _T("SOFTWARE\\WOW3232Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0D9BCA0A-76FF-4FAC-A9ED-CA05B66C27B7}_is1");//小班课注册表地址32位
-		}
-	}*/
-	 if (mark == 2)
+	if (_mark == 64)
+	{
+	sw = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0D9BCA0A-76FF-4FAC-A9ED-CA05B66C27B7}_is1");//小班课注册表地址64位
+	}else if (_mark==32)
+	{
+	sw = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0D9BCA0A-76FF-4FAC-A9ED-CA05B66C27B7}_is1");//小班课注册表地址32位
+	}
+	}else if (mark == 2)
 	{
 		if (_mark == 64)
 		{
 			sw = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2F0F058C-D340-4520-948E-7639602467EF}_is1");//三分屏注册表地址64位
-		}else if (_mark == 32)
+		}
+		else if (_mark == 32)
 		{
 			sw = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2F0F058C-D340-4520-948E-7639602467EF}_is1");//三分屏注册表地址32位
 		}
 	}
-	//wprintf(L"SW is %s\n", sw);
+	else if (mark == 3)
+	{
+		if (_mark == 64)
+		{
+			sw = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{6E49F7DF-907C-4A7B-B240-199A3396CA3A}_is1");//小灶课注册表地址64位
+		}
+		else if (_mark == 32)
+		{
+			sw = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{6E49F7DF-907C-4A7B-B240-199A3396CA3A}_is1");//小灶课注册表地址32位
+		}
+	}
+	else if (mark == 4)
+	{
+		if (_mark == 64)
+		{
+			sw = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{A843C0F2-287C-4F7E-B1D2-85FC3CDE3515}_is1");//公立校注册表地址64位
+		}
+		else if (_mark == 32)
+		{
+			sw = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{A843C0F2-287C-4F7E-B1D2-85FC3CDE3515}_is1");//公立校注册表地址32位
+		}
+	}
+	else if (mark == 5)
+	{
+		if (_mark == 64)
+		{
+			sw = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{B724361C-7994-4D17-9E05-67BA819DD32A}_is1");//辅导端注册表地址64位
+		}
+		else if (_mark == 32)
+		{
+			sw = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{B724361C-7994-4D17-9E05-67BA819DD32A}_is1");//辅导端注册表地址32位
+		}
+	}
+	else if (mark == 6)
+	{
+		if (_mark == 64)
+		{
+			sw = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F1E94093-BFBE-40FF-826F-79A348111AD4}_is1");//学生端注册表地址64位
+		}
+		else if (_mark == 32)
+		{
+			sw = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F1E94093-BFBE-40FF-826F-79A348111AD4}_is1");//学生端注册表地址32位
+		}
+	}
+
 	if (ERROR_SUCCESS == RegOpenKey(HKEY_LOCAL_MACHINE, sw, &hRetKey))
 	{
 		return true;
@@ -191,22 +267,56 @@ bool QueryRegKey(LPCWSTR strSubKey, LPCWSTR strValueName, char *strValue, int le
 
 	return false;
 }
-void name()
-{
-	switch (Case)
-	{
-	case 1:cout << "小班课" << endl; break;//小班课
-	case 2:cout << "三分屏" << endl; break;//三分屏
-	case 3:cout << "小灶课" << endl; break;//小灶课
-	case 4:cout << "公立校" << endl; break;//公立校
-	case 5:cout << "辅导端" << endl; break;//辅导端
-	case 6:cout << "学生端" << endl; break;//学生端
-	default:
-		break;
+
+void listFiles(string dir) {
+	//在目录后面加上"\\*.*"进行第一次搜索
+	string newDir = dir + "\\*.*";
+	//用于查找的句柄
+	intptr_t handle;
+	struct _finddata_t fileinfo;
+	//第一次查找
+	handle = _findfirst(newDir.c_str(), &fileinfo);
+
+	if (handle == -1) {
+		cout << "无文件" << endl;
+		system("pause");
+		return;
 	}
+
+	do
+	{
+		if (fileinfo.attrib & _A_SUBDIR) {//如果为文件夹，加上文件夹路径，再次遍历
+			if (strcmp(fileinfo.name, ".") == 0 || strcmp(fileinfo.name, "..") == 0)
+				continue;
+
+			// 在目录后面加上"\\"和搜索到的目录名进行下一次搜索
+			newDir = dir + "\\" + fileinfo.name;
+			listFiles(newDir.c_str());//先遍历删除文件夹下的文件，再删除空的文件夹
+			//cout << newDir.c_str() << endl;
+			if (_rmdir(newDir.c_str()) == 0) {//删除空文件夹
+				//cout << "delete empty dir success" << endl;
+			}
+			else {
+				//cout << "delete empty dir error" << endl;
+			}
+		}
+		else {
+			string file_path = dir + "\\" + fileinfo.name;
+		//	cout << file_path.c_str() << endl;
+			if (remove(file_path.c_str()) == 0) {//删除文件
+				//cout << "delete file success" << endl;
+			}
+			else {
+				//cout << "delete file error" << endl;
+			}
+		}
+	} while (!_findnext(handle, &fileinfo));
+
+	_findclose(handle);
 	return;
 }
-void logpath(string apppath,string mupath)//第一个参数是表示读取log位置 第二个参数是文件生成文件名
+
+void logpath(string apppath, string mupath)//第一个参数是表示读取log位置 第二个参数是文件生成文件名
 {
 	wstring mcpath = GetLocalAppdataPath();
 	string minclaspath = wstring2string(mcpath);
@@ -214,71 +324,103 @@ void logpath(string apppath,string mupath)//第一个参数是表示读取log位
 	minclaspath.append(apppath);
 	zip_un smzip;
 	string strZipPath_un, strZipPath = minclaspath;
-
+	//cout << strZipPath << endl;
 	strZipPath_un = strZipPath + ".zip";
-	name();
-	smzip.Zip_PackFiles(strZipPath);
+	//cout << strZipPath_un << endl;
 	//name();
-	//cout << minclaspath << endl;
-	//smzip.Zip_UnPackFiles(strZipPath);
-	
-	/*	name();
-		cout << "没有找到该app日志数据请确认是否安装并运行" << endl;
-	*/
-	//else cout << "no" << endl;
-	string zu=TCHAR2STRING(path);
+	if (dir(strZipPath) < 3)
+	{
+		//cout << "log该目录为空" << endl;
+		return;
+	}
+	smzip.Zip_PackFiles(strZipPath);
 	string fname = "";
-	//cout << "desktop" << endl;
-	//cout << desktop << endl;
-
 	fname.append(desktop);
-	//cout << zu << endl;
-	fname = fname+"\\journalFolder";
-	//cout << fname << endl;
+	fname = fname + "\\journalFolder";
 	if (0 != access(fname.c_str(), 0))
 	{
 		mkdir(fname.c_str());
 	}
 	CString str1 = strZipPath_un.c_str();
 	fname.append(mupath);
-	//cout << fname << endl;
 	CString str2 = fname.c_str();
 	CopyFile(str1, str2, FALSE);
-     
+	//cout << strZipPath_un << endl;
+	remove(strZipPath_un.c_str());
 	return;
 }
 void test1()//小班课
 {
-	/*wstring mcpath = GetLocalAppdataPath();
-	string minclaspath = wstring2string(mcpath);
-	string s1="\\zytheater\\log";
-	s1.c_str();
-	minclaspath.append(s1);
-	zip_un smzip;
-	string strZipPath_un, strZipPath = minclaspath;
-	strZipPath_un = strZipPath + ".zip";
-	smzip.Zip_PackFiles(strZipPath);
-	string fname;
-	fname = "C:\\journalFolder";
-	if (0 != access(fname.c_str(), 0))
-	{
-		mkdir(fname.c_str());
-	}
-	CString str1 = strZipPath_un.c_str();
-	fname.append("\\zytheatherlog.zip");
-	//cout << "debug" << endl;
-	//cout << fname << endl;
-	CString str2 = fname.c_str();
-	CopyFile(str1, str2, FALSE);*/
 	string s1 = "\\zytheater\\log";
 	string s2 = "\\smallclasslog.zip";
+	mark = 1;
 	logpath(s1, s2);
+	hKey = NULL;
+	if (_mark == 64)
+	{
+		strSubKey = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0D9BCA0A-76FF-4FAC-A9ED-CA05B66C27B7}_is1");
+		strValueName = _T("InstallLocation");
+	}
+	else if (_mark == 32)
+	{
+		strSubKey = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0D9BCA0A-76FF-4FAC-A9ED-CA05B66C27B7}_is1");
+		strValueName = _T("InstallLocation");
+	}
+	status = QueryRegKey(strSubKey, strValueName, strValue1, length);
+	string ss = ""; string fri = "";
+	ss.append(strValue1);
+	fri = ss;
+	fri.append("\Application\\");
+	string en = "\\User Data\\version.ini";
+	ss.append(en); 
+	ifstream ifs; string ass;
+	ifs.open(ss); vector<string>svec;
+	while (ifs)
+	{
+		getline(ifs, ass);
+		if (ass[0] == 'l')
+		{
+			break;
+		}
+	}
+	string ver= "";
+	for (int i = 0; i < ass.size(); i++)
+	{
+		if (ass[i] >= '0'&&ass[i] <= '9')
+		{ 
+			int _le = ass.size();
+			ver=ass.substr(i,_le);
+			break;
+		}
+	}
+	fri.append(ver);
+	fri.append("\\crash");
+	//name();
+	//cout << fri << endl;
+	
+	if (dir(fri) < 3)
+	{
+		//cout << "crash该目录为空" << endl;
+		return;
+	}//cout << "crash"<<endl;
+	zip_un smzip;
+	string strZipPath_un, strZipPath = fri;
+	strZipPath_un = strZipPath + ".zip";
+	smzip.Zip_PackFiles(strZipPath);
+	string fname = "";;
+	fname.append(desktop);
+	fname = fname + "\\journalFolder\\";
+	CString str1 = strZipPath_un.c_str();
+	fname.append("smallclasscrash.zip");
+	CString str2 = fname.c_str();
+	CopyFile(str1, str2, FALSE);
+	remove(strZipPath_un.c_str());
 	return;
 }
 
 void test2()//三分屏处理
 {
-	mark = 2;
+	mark = 2; int flag = 0;
 	hKey = NULL;
 	if (_mark == 64)
 	{
@@ -287,7 +429,7 @@ void test2()//三分屏处理
 	}
 	else if (_mark == 32)
 	{
-		strSubKey = _T("SOFTWARE\\WOW3232Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2F0F058C-D340-4520-948E-7639602467EF}_is1");//读取三分屏32位
+		strSubKey = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2F0F058C-D340-4520-948E-7639602467EF}_is1");//读取三分屏32位
 		strValueName = _T("InstallLocation");
 	}
 	status = QueryRegKey(strSubKey, strValueName, strValue1, length);
@@ -297,7 +439,6 @@ void test2()//三分屏处理
 	{
 		cout << "收集不到该软件的日志地址请确认是否安装了此app并成功打开并运行" << endl;
 	}
-	//cout << status << endl;
 	int _len = strlen(strValue1);
 	string ss = "";
 	string _en = "uninst_config.ini";
@@ -310,8 +451,9 @@ void test2()//三分屏处理
 		}
 		else ss.push_back(strValue1[id]);
 	}
-	ss.append(_en); string ass;
-	ifs.open(ss); vector<string>svec;
+	ss.append(_en);
+	string ass; ifstream ifs;
+	ifs.open(ss);vector<string>svec;
 	while (ifs)
 	{
 		getline(ifs, ass);
@@ -328,49 +470,185 @@ void test2()//三分屏处理
 			ss = ss.substr(i, _le);
 		}
 	}
+
 	_en = "\\zylive\\log";
 	ss.append(_en);
 	//cout << ss << endl;
-	zip_un z;
-	string strZipPath_un, strZipPath = ss;
+	if (dir(ss)<3)
+	{
+		flag = 1;
+		//name();
+		//cout << "log目录为空" << endl;
+	}
+	if (flag == 0)
+	{
+		zip_un z;
+		string strZipPath_un, strZipPath = ss;
+		strZipPath_un = strZipPath + ".zip";
+		//name();
+		z.Zip_PackFiles(strZipPath);
+		for (int i = 0; i < strZipPath_un.size(); i++)
+		{
+			if (strZipPath_un[i] == '/')
+				strZipPath_un[i] = '\\';
+		}
+		//cout << strZipPath_un << endl;
+		string zu = TCHAR2STRING(path);
+		string fname = "";
+		fname.append(desktop);
+		//cout << zu << endl;
+		fname = fname + "\\journalFolder";
+		if (0 != access(fname.c_str(), 0))
+		{
+			mkdir(fname.c_str());
+		}
+
+		CString str1 = strZipPath_un.c_str();
+		fname.append("\\zyLecturelog.zip");
+		CString str2 = fname.c_str();
+		CopyFile(str1, str2, FALSE);
+		remove(strZipPath_un.c_str());
+	}
+	ss = ""; string fri = "";
+	ss.append(strValue1);
+	fri = ss;
+	fri.append("\\Application\\");
+	string en = "\\User Data\\version.ini";
+	ss.append(en);
+	ifstream ifss; ass="";
+	ifss.open(ss); 
+	while (ifss)
+	{
+		getline(ifss, ass);
+		if (ass[0] == 'l')
+		{
+			break;
+		}
+	}
+	string ver = "";
+	for (int i = 0; i < ass.size(); i++)
+	{
+		if (ass[i] >= '0'&&ass[i] <= '9')
+		{
+			int _le = ass.size();
+			ver = ass.substr(i, _le);
+			break;
+		}
+	}
+	fri.append(ver);
+	//cout << "zylecture" << endl;
+	//cout << fri << endl;
+	fri.append("\\crash");
+	//name();
+
+	if (dir(fri) < 3)
+	{
+		//cout << "crash该目录为空" << endl;
+		return;
+	}	//cout << "crash"<<endl;
+   zip_un smzip;
+ string strZipPath_un, strZipPath = fri;
 	strZipPath_un = strZipPath + ".zip";
-	name();
-	z.Zip_PackFiles(strZipPath);
-	for (int i = 0; i < strZipPath_un.size(); i++)
-	{
-		if (strZipPath_un[i] == '/')
-			strZipPath_un[i] = '\\';
-	}
-	//cout << strZipPath_un << endl;
-	string zu = TCHAR2STRING(path);
-	string fname = "";
+	smzip.Zip_PackFiles(strZipPath);
+  string fname = "";
 	fname.append(desktop);
-	//cout << zu << endl;
-	fname = fname + "\\journalFolder";
-	if (0 != access(fname.c_str(), 0))
-	{
-		mkdir(fname.c_str());
-	}
-	
-	CString str1 = strZipPath_un.c_str();
-	fname.append("\\zyLecturelog.zip");
-	CString str2 = fname.c_str();
+	fname = fname + "\\journalFolder\\";
+   CString  str1 = strZipPath_un.c_str();
+	fname.append("zyLecturecrash.zip");
+  CString	str2 = fname.c_str();
 	CopyFile(str1, str2, FALSE);
-	return;
+	remove(strZipPath_un.c_str());
+   	return;
 }
 void test3()//小灶课
 {
 	string s1 = "\\zystove\\log";
 	string s2 = "\\ztstovelog.zip";
 	logpath(s1, s2);
+	mark = 3;
+	hKey = NULL;
+	if (_mark == 64)
+	{
+		strSubKey = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{6E49F7DF-907C-4A7B-B240-199A3396CA3A}_is1");
+		strValueName = _T("InstallLocation");
+	}
+	else if (_mark == 32)
+	{
+		strSubKey = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{6E49F7DF-907C-4A7B-B240-199A3396CA3A}_is1");
+		strValueName = _T("InstallLocation");
+	}
+	status = QueryRegKey(strSubKey, strValueName, strValue1, length);
+	string ss = ""; string fri = "";
+	ss.append(strValue1);
+	fri = ss;
+	fri.append("\crash");
+	//cout << "zystove" << endl;
+	//cout << fri << endl;
+	//name();
+	
+	if (dir(fri) < 3)
+	{
+	//	cout << "crash该目录为空" << endl;
+		return;
+	}//cout << "crash" << endl;
+     zip_un smzip;
+	string strZipPath_un, strZipPath = fri;
+	strZipPath_un = strZipPath + ".zip";
+	smzip.Zip_PackFiles(strZipPath);
+	string fname = "";;
+	fname.append(desktop);
+	fname = fname + "\\journalFolder\\";
+	CString str1 = strZipPath_un.c_str();
+	fname.append("zystovecrash.zip");
+	CString str2 = fname.c_str();
+	CopyFile(str1, str2, FALSE);
+	remove(strZipPath_un.c_str());
 	return;
 }
 
 void test4()//公立校
-{    
+{
 	string s1 = "\\zyschool\\log";
 	string s2 = "\\zyschoollog.zip";
 	logpath(s1, s2);
+	mark = 4;
+	hKey = NULL;
+	if (_mark == 64)
+	{
+		strSubKey = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{A843C0F2-287C-4F7E-B1D2-85FC3CDE3515}_is1");
+		strValueName = _T("InstallLocation");
+	}
+	else if (_mark == 32)
+	{
+		strSubKey = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{A843C0F2-287C-4F7E-B1D2-85FC3CDE3515}_is1");
+		strValueName = _T("InstallLocation");
+	}
+	status = QueryRegKey(strSubKey, strValueName, strValue1, length);
+	string ss = ""; string fri = "";
+	ss.append(strValue1);
+	fri = ss;
+	fri.append("\crash");
+	/*cout << "zyschool" << endl;
+	cout << fri << endl;
+	*///name();
+	
+	if (dir(fri) < 3)
+	{
+		//cout << "crash该目录为空" << endl;
+		return;
+	}//cout << "crash"<<endl;
+	zip_un smzip;
+	string strZipPath_un, strZipPath = fri;
+	strZipPath_un = strZipPath + ".zip";
+	smzip.Zip_PackFiles(strZipPath);
+	string fname = "";;
+	fname.append(desktop);
+	fname = fname + "\\journalFolder\\";
+	CString str1 = strZipPath_un.c_str();
+	fname.append("zyschoolcrash.zip");
+	CString str2 = fname.c_str();
+	CopyFile(str1, str2, FALSE);
+	remove(strZipPath_un.c_str());
 	return;
 }
 
@@ -379,6 +657,44 @@ void test5()//辅导端
 	string s1 = "\\zycounsellor\\logs";
 	string s2 = "\\zycounsellorlog.zip";
 	logpath(s1, s2);
+	mark = 5;
+	hKey = NULL;
+	if (_mark == 64)
+	{
+		strSubKey = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{B724361C-7994-4D17-9E05-67BA819DD32A}_is1");
+		strValueName = _T("InstallLocation");
+	}
+	else if (_mark == 32)
+	{
+		strSubKey = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{B724361C-7994-4D17-9E05-67BA819DD32A}_is1");
+		strValueName = _T("InstallLocation");
+	}
+	status = QueryRegKey(strSubKey, strValueName, strValue1, length);
+	string ss = ""; string fri = "";
+	ss.append(strValue1);
+	fri = ss;
+	fri.append("\crash");
+	/*cout << "zycocunseller" << endl;
+	cout << fri << endl;
+	*///name();
+	
+	if (dir(fri) < 3)
+	{
+	//	cout << "crash该目录为空" << endl;
+		return;
+	}//cout << "crash" << endl;
+	zip_un smzip;
+	string strZipPath_un, strZipPath = fri;
+	strZipPath_un = strZipPath + ".zip";
+	smzip.Zip_PackFiles(strZipPath);
+	string fname = "";;
+	fname.append(desktop);
+	fname = fname + "\\journalFolder\\";
+	CString str1 = strZipPath_un.c_str();
+	fname.append("zycounsellorcrash.zip");
+	CString str2 = fname.c_str();
+	CopyFile(str1, str2, FALSE);
+	remove(strZipPath_un.c_str());
 	return;
 }
 
@@ -387,15 +703,104 @@ void test6()//学生端
 	string s1 = "\\ZYStudent\\ZYLauncherLog";
 	string s2 = "\\zyStudentlog.zip";
 	logpath(s1, s2);
+	s1 = "\\ZYStudent\\logs";
+	s2 = "\\zyStudentlogs.zip";
+	logpath(s1, s2);
+	mark = 6;
+	hKey = NULL;
+	if (_mark == 64)
+	{
+		strSubKey = _T("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F1E94093-BFBE-40FF-826F-79A348111AD4}_is1");
+		strValueName = _T("InstallLocation");
+	}
+	else if (_mark == 32)
+	{
+		strSubKey = _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F1E94093-BFBE-40FF-826F-79A348111AD4}_is1");
+		strValueName = _T("InstallLocation");
+	}
+	status = QueryRegKey(strSubKey, strValueName, strValue1, length);
+	string ss = ""; string fri = "";
+	ss.append(strValue1);
+	fri = ss;
+	fri.append("\\Application\\");
+	string en = "\\User Data\\version.ini";
+	ss.append(en);
+	ifstream ifs; string ass;
+	ifs.open(ss); vector<string>svec;
+	while (ifs)
+	{
+		getline(ifs, ass);
+		if (ass[0] == 'l')
+		{
+			break;
+		}
+	}
+	string ver = "";
+	for (int i = 0; i < ass.size(); i++)
+	{
+		if (ass[i] >= '0'&&ass[i] <= '9')
+		{
+			int _le = ass.size();
+			ver = ass.substr(i, _le);
+			break;
+		}
+	}
+	fri.append(ver);
+	fri.append("\\crash");
+	/*cout << "zystudent" << endl;
+	cout << fri << endl;*/
+	//name();
+	
+	if (dir(fri) < 3)
+	{
+		//cout << "crash该目录为空" << endl;
+		return;
+	}//cout << "crash" << endl;
+	zip_un smzip;
+	string strZipPath_un, strZipPath = fri;
+	strZipPath_un = strZipPath + ".zip";
+	smzip.Zip_PackFiles(strZipPath);
+	string fname = "";;
+	fname.append(desktop);
+	fname = fname + "\\journalFolder\\";
+	CString str1 = strZipPath_un.c_str();
+	fname.append("zystudentcrash.zip");
+	CString str2 = fname.c_str();
+	CopyFile(str1, str2, FALSE);
+	remove(strZipPath_un.c_str());
+	/*zip_un sm;
+	string En = "";
+	En.append(desktop);
+	En = En + "\\journalFolder";
+	strZipPath = En;
+	//strZipPath_un = strZipPath + ".zip";
+	sm.Zip_PackFiles(strZipPath);*/
+	return;
+}
+
+void test7()
+{
+	zip_un smzip;
+	string zz = "";
+	zz.append(desktop);
+	zz = zz + "\\journalFolder";
+	//cout << zz << endl;
+	
+	smzip.Zip_PackFiles(zz);
+	//system("rd C:\Users\\i5-10400F\\Desktop\\journalFolder");
+	wstring ss = string2wstring(zz);
+	listFiles(zz);
+	//cout << zz << endl;
+	RemoveDirectory(ss.c_str());
 	return;
 }
 
 int main()
 {
-	GetSystemDirectory(path,MAX_PATH);
+	GetSystemDirectory(path, MAX_PATH);
 	TCHAR path[255];
 	SHGetSpecialFolderPath(0, path, CSIDL_DESKTOPDIRECTORY, 0);
-	desktop= TCHARSTRING(path);
+	desktop = TCHARSTRING(path);
 	if (IsWow64())
 	{
 		_mark = 64;
@@ -407,22 +812,23 @@ int main()
 	//string result;
 	cout << "生成日志存放在桌面journalFolder文件夹下 " << endl;
 	cout << "小班课日志为smallclasslog.zip 三分屏日志为zyLecturelog.zip" << endl;
-	cout << "小灶课日志为ztstovelog.zip 公立校日志为zyschoollog.zip"<< endl;
+	cout << "小灶课日志为ztstovelog.zip 公立校日志为zyschoollog.zip" << endl;
 	cout << "辅导端的日志为zycounsellorlog.zip 学生端的日志为zystudentlog.zip" << endl;
-		for (Case = 1; Case <= 7; Case++)
+	for (Case = 1; Case <= 8; Case++)
+	{
+		if (Case == 8)break;
+		switch (Case)
 		{
-			if (Case == 7)break;
-			switch (Case)
-			{
-			case 1: test1(); break;//小班课
-			case 2: test2(); break;//三分屏
-			case 3: test3(); break;//小灶课
-			case 4: test4(); break;//公立校
-			case 5: test5(); break;//辅导端
-			case 6: test6(); break;//学生端
-			default:  break;
-			}
+		case 1: test1(); break;//小班课
+		case 2: test2(); break;//三分屏
+		case 3: test3(); break;//小灶课
+		case 4: test4(); break;//公立校
+		case 5: test5(); break;//辅导端
+		case 6: test6(); break;//学生端
+		case 7: test7(); break;
+		default:  break;
 		}
+	}
 	//system("pause");
 	system("pause");
 	return 0;
