@@ -268,6 +268,46 @@ bool QueryRegKey(LPCWSTR strSubKey, LPCWSTR strValueName, char *strValue, int le
 	return false;
 }
 
+void findAllFile(const char * path, const char * format,string mupath) //搜索.dmp文件
+{
+	//cout << path << endl;
+	char newpath[200];
+	strcpy(newpath, path);
+	strcat(newpath, "\\*.*");    // 在目录后面加上"\\*.*"进行第一次搜索
+	int handle;
+	_finddata_t findData;
+	handle = _findfirst(newpath, &findData);
+	if (handle == -1)        // 检查是否成功
+		return;
+	while (_findnext(handle, &findData) == 0) {
+		if (findData.attrib & _A_SUBDIR) {
+			if (strcmp(findData.name, ".") == 0 || strcmp(findData.name, "..") == 0)
+				continue;
+			strcpy(newpath, path);
+			strcat(newpath, "\\");
+			strcat(newpath, findData.name);
+			findAllFile(newpath, format,mupath);
+		}
+		else {
+			if (strstr(findData.name, format)) {   //判断是不是dmp文件
+				string st = path;
+				st.append("\\");
+				st.append(findData.name);
+				//cout << st << endl;
+				CString str1 = st.c_str();
+				string ss = mupath;
+				ss.append("\\");
+				ss.append(findData.name);
+				CString str2 =ss.c_str();
+				//cout << ss << endl;
+				CopyFile(str1,str2,FALSE);
+			//	cout << findData.name << "\t" << path << "\t" << findData.size << " bytes.\n";
+			}
+		}
+	}
+	_findclose(handle);    // 关闭搜索句柄
+}
+
 void listFiles(string dir) {
 	//在目录后面加上"\\*.*"进行第一次搜索
 	string newDir = dir + "\\*.*";
@@ -342,7 +382,9 @@ void logpath(string apppath, string mupath)//第一个参数是表示读取log�
 		mkdir(fname.c_str());
 	}
 	CString str1 = strZipPath_un.c_str();
+	//cout << strZipPath_un << endl;
 	fname.append(mupath);
+	//cout << fname << endl;
 	CString str2 = fname.c_str();
 	CopyFile(str1, str2, FALSE);
 	//cout << strZipPath_un << endl;
@@ -393,28 +435,16 @@ void test1()//小班课
 			break;
 		}
 	}
-	fri.append(ver);
-	fri.append("\\crash");
-	//name();
-	//cout << fri << endl;
-	
-	if (dir(fri) < 3)
-	{
-		//cout << "crash该目录为空" << endl;
-		return;
-	}//cout << "crash"<<endl;
-	zip_un smzip;
-	string strZipPath_un, strZipPath = fri;
-	strZipPath_un = strZipPath + ".zip";
-	smzip.Zip_PackFiles(strZipPath);
 	string fname = "";;
 	fname.append(desktop);
-	fname = fname + "\\journalFolder\\";
-	CString str1 = strZipPath_un.c_str();
-	fname.append("smallclasscrash.zip");
-	CString str2 = fname.c_str();
-	CopyFile(str1, str2, FALSE);
-	remove(strZipPath_un.c_str());
+	fname = fname + "\\journalFolder\\smallclasscrash";
+	if (0 != access(fname.c_str(), 0))
+	{
+		mkdir(fname.c_str());
+	}
+	findAllFile(fri.c_str(), ".dmp",fname);
+	wstring s = string2wstring(fname);
+	RemoveDirectory(s.c_str());
 	return;
 }
 
@@ -435,10 +465,6 @@ void test2()//三分屏处理
 	status = QueryRegKey(strSubKey, strValueName, strValue1, length);
 	//cout << "status数值";
 	//cout << status << endl;
-	if (status != 1)
-	{
-		cout << "收集不到该软件的日志地址请确认是否安装了此app并成功打开并运行" << endl;
-	}
 	int _len = strlen(strValue1);
 	string ss = "";
 	string _en = "uninst_config.ini";
@@ -512,52 +538,16 @@ void test2()//三分屏处理
 	ss = ""; string fri = "";
 	ss.append(strValue1);
 	fri = ss;
-	fri.append("\\Application\\");
-	string en = "\\User Data\\version.ini";
-	ss.append(en);
-	ifstream ifss; ass="";
-	ifss.open(ss); 
-	while (ifss)
-	{
-		getline(ifss, ass);
-		if (ass[0] == 'l')
-		{
-			break;
-		}
-	}
-	string ver = "";
-	for (int i = 0; i < ass.size(); i++)
-	{
-		if (ass[i] >= '0'&&ass[i] <= '9')
-		{
-			int _le = ass.size();
-			ver = ass.substr(i, _le);
-			break;
-		}
-	}
-	fri.append(ver);
-	//cout << "zylecture" << endl;
-	//cout << fri << endl;
-	fri.append("\\crash");
-	//name();
-
-	if (dir(fri) < 3)
-	{
-		//cout << "crash该目录为空" << endl;
-		return;
-	}	//cout << "crash"<<endl;
-   zip_un smzip;
- string strZipPath_un, strZipPath = fri;
-	strZipPath_un = strZipPath + ".zip";
-	smzip.Zip_PackFiles(strZipPath);
-  string fname = "";
+	string fname = "";;
 	fname.append(desktop);
-	fname = fname + "\\journalFolder\\";
-   CString  str1 = strZipPath_un.c_str();
-	fname.append("zyLecturecrash.zip");
-  CString	str2 = fname.c_str();
-	CopyFile(str1, str2, FALSE);
-	remove(strZipPath_un.c_str());
+	fname = fname + "\\journalFolder\\zyLecturecrash";
+	if (0 != access(fname.c_str(), 0))
+	{
+		mkdir(fname.c_str());
+	}
+	findAllFile(fri.c_str(), ".dmp", fname);
+	wstring s = string2wstring(fname);
+	RemoveDirectory(s.c_str());
    	return;
 }
 void test3()//小灶课
@@ -581,28 +571,16 @@ void test3()//小灶课
 	string ss = ""; string fri = "";
 	ss.append(strValue1);
 	fri = ss;
-	fri.append("\crash");
-	//cout << "zystove" << endl;
-	//cout << fri << endl;
-	//name();
-	
-	if (dir(fri) < 3)
-	{
-	//	cout << "crash该目录为空" << endl;
-		return;
-	}//cout << "crash" << endl;
-     zip_un smzip;
-	string strZipPath_un, strZipPath = fri;
-	strZipPath_un = strZipPath + ".zip";
-	smzip.Zip_PackFiles(strZipPath);
 	string fname = "";;
 	fname.append(desktop);
-	fname = fname + "\\journalFolder\\";
-	CString str1 = strZipPath_un.c_str();
-	fname.append("zystovecrash.zip");
-	CString str2 = fname.c_str();
-	CopyFile(str1, str2, FALSE);
-	remove(strZipPath_un.c_str());
+	fname = fname + "\\journalFolder\\zystovecrash";
+	if (0 != access(fname.c_str(), 0))
+	{
+		mkdir(fname.c_str());
+	}
+	findAllFile(fri.c_str(), ".dmp", fname);
+	wstring s = string2wstring(fname);
+	RemoveDirectory(s.c_str());
 	return;
 }
 
@@ -627,28 +605,16 @@ void test4()//公立校
 	string ss = ""; string fri = "";
 	ss.append(strValue1);
 	fri = ss;
-	fri.append("\crash");
-	/*cout << "zyschool" << endl;
-	cout << fri << endl;
-	*///name();
-	
-	if (dir(fri) < 3)
-	{
-		//cout << "crash该目录为空" << endl;
-		return;
-	}//cout << "crash"<<endl;
-	zip_un smzip;
-	string strZipPath_un, strZipPath = fri;
-	strZipPath_un = strZipPath + ".zip";
-	smzip.Zip_PackFiles(strZipPath);
 	string fname = "";;
 	fname.append(desktop);
-	fname = fname + "\\journalFolder\\";
-	CString str1 = strZipPath_un.c_str();
-	fname.append("zyschoolcrash.zip");
-	CString str2 = fname.c_str();
-	CopyFile(str1, str2, FALSE);
-	remove(strZipPath_un.c_str());
+	fname = fname + "\\journalFolder\\zyschoolcrash";
+	if (0 != access(fname.c_str(), 0))
+	{
+		mkdir(fname.c_str());
+	}
+	findAllFile(fri.c_str(), ".dmp", fname);
+	wstring s = string2wstring(fname);
+	RemoveDirectory(s.c_str());
 	return;
 }
 
@@ -673,28 +639,16 @@ void test5()//辅导端
 	string ss = ""; string fri = "";
 	ss.append(strValue1);
 	fri = ss;
-	fri.append("\crash");
-	/*cout << "zycocunseller" << endl;
-	cout << fri << endl;
-	*///name();
-	
-	if (dir(fri) < 3)
-	{
-	//	cout << "crash该目录为空" << endl;
-		return;
-	}//cout << "crash" << endl;
-	zip_un smzip;
-	string strZipPath_un, strZipPath = fri;
-	strZipPath_un = strZipPath + ".zip";
-	smzip.Zip_PackFiles(strZipPath);
 	string fname = "";;
 	fname.append(desktop);
-	fname = fname + "\\journalFolder\\";
-	CString str1 = strZipPath_un.c_str();
-	fname.append("zycounsellorcrash.zip");
-	CString str2 = fname.c_str();
-	CopyFile(str1, str2, FALSE);
-	remove(strZipPath_un.c_str());
+	fname = fname + "\\journalFolder\\zycounsellorcrash";
+	if (0 != access(fname.c_str(), 0))
+	{
+		mkdir(fname.c_str());
+	}
+	findAllFile(fri.c_str(), ".dmp", fname);
+	wstring s = string2wstring(fname);
+	RemoveDirectory(s.c_str());
 	return;
 }
 
@@ -722,59 +676,16 @@ void test6()//学生端
 	string ss = ""; string fri = "";
 	ss.append(strValue1);
 	fri = ss;
-	fri.append("\\Application\\");
-	string en = "\\User Data\\version.ini";
-	ss.append(en);
-	ifstream ifs; string ass;
-	ifs.open(ss); vector<string>svec;
-	while (ifs)
-	{
-		getline(ifs, ass);
-		if (ass[0] == 'l')
-		{
-			break;
-		}
-	}
-	string ver = "";
-	for (int i = 0; i < ass.size(); i++)
-	{
-		if (ass[i] >= '0'&&ass[i] <= '9')
-		{
-			int _le = ass.size();
-			ver = ass.substr(i, _le);
-			break;
-		}
-	}
-	fri.append(ver);
-	fri.append("\\crash");
-	/*cout << "zystudent" << endl;
-	cout << fri << endl;*/
-	//name();
-	
-	if (dir(fri) < 3)
-	{
-		//cout << "crash该目录为空" << endl;
-		return;
-	}//cout << "crash" << endl;
-	zip_un smzip;
-	string strZipPath_un, strZipPath = fri;
-	strZipPath_un = strZipPath + ".zip";
-	smzip.Zip_PackFiles(strZipPath);
 	string fname = "";;
 	fname.append(desktop);
-	fname = fname + "\\journalFolder\\";
-	CString str1 = strZipPath_un.c_str();
-	fname.append("zystudentcrash.zip");
-	CString str2 = fname.c_str();
-	CopyFile(str1, str2, FALSE);
-	remove(strZipPath_un.c_str());
-	/*zip_un sm;
-	string En = "";
-	En.append(desktop);
-	En = En + "\\journalFolder";
-	strZipPath = En;
-	//strZipPath_un = strZipPath + ".zip";
-	sm.Zip_PackFiles(strZipPath);*/
+	fname = fname + "\\journalFolder\\zystudentcrash";
+	if (0 != access(fname.c_str(), 0))
+	{
+		mkdir(fname.c_str());
+	}
+	findAllFile(fri.c_str(), ".dmp", fname);
+	wstring s = string2wstring(fname);
+	RemoveDirectory(s.c_str());
 	return;
 }
 
@@ -811,9 +722,9 @@ int main()
 	}
 	//string result;
 	cout << "生成日志存放在桌面journalFolder文件夹下 " << endl;
-	cout << "小班课日志为smallclasslog.zip 三分屏日志为zyLecturelog.zip" << endl;
+	/*cout << "小班课日志为smallclasslog.zip 三分屏日志为zyLecturelog.zip" << endl;
 	cout << "小灶课日志为ztstovelog.zip 公立校日志为zyschoollog.zip" << endl;
-	cout << "辅导端的日志为zycounsellorlog.zip 学生端的日志为zystudentlog.zip" << endl;
+	cout << "辅导端的日志为zycounsellorlog.zip 学生端的日志为zystudentlog.zip" << endl;*/
 	for (Case = 1; Case <= 8; Case++)
 	{
 		if (Case == 8)break;
